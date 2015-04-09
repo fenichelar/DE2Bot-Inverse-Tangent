@@ -9,3 +9,5 @@ incremental_db/
 *.pin
 *.pof
 *.sof
+*.mif
+*.bak
