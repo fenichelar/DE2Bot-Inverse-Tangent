@@ -1,0 +1,11 @@
+# Folders
+db/
+incremental_db/
+
+# Extensions
+*.summary
+*.rpt
+*.done
+*.pin
+*.pof
+*.sof
