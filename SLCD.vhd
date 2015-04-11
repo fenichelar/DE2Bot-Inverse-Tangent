@@ -23,6 +23,7 @@ ENTITY SLCD IS
     RESETN      : IN  STD_LOGIC;
     CS          : IN  STD_LOGIC;
     IO_DATA     : IN  STD_LOGIC_VECTOR(15 DOWNTO 0);
+    ADDR        : IN  STD_LOGIC_VECTOR(2 DOWNTO 0);
     LCD_RS      : OUT STD_LOGIC;
     LCD_RW      : OUT STD_LOGIC;
     LCD_E       : OUT STD_LOGIC;
@@ -53,6 +54,7 @@ ARCHITECTURE a OF SLCD IS
   SIGNAL count   : INTEGER RANGE 0 TO 1000;
   SIGNAL delay   : INTEGER RANGE 0 TO 100;
   SIGNAL data_in : STD_LOGIC_VECTOR(15 DOWNTO 0);
+  SIGNAL location : STD_LOGIC_VECTOR(7 DOWNTO 0);
 
 
   BEGIN
@@ -89,6 +91,15 @@ ARCHITECTURE a OF SLCD IS
     cstr(2) <= ascii(CONV_INTEGER(data_in(11 DOWNTO  8)));
     cstr(3) <= ascii(CONV_INTEGER(data_in(15 DOWNTO 12)));
 
+	WITH ADDR SELECT location <=
+		x"83" WHEN "000",
+		x"87" WHEN "001",
+		x"8B" WHEN "010",
+		x"8F" WHEN "011",
+		x"C3" WHEN "100",
+		x"C7" WHEN "101",
+		x"CB" WHEN "110",
+		x"CF" WHEN "111";
 
     -- This process latches the incoming data value on the rising edge of CS
     PROCESS (RESETN, CS)
@@ -148,7 +159,7 @@ ARCHITECTURE a OF SLCD IS
             WHEN CURPOS =>            -- Move to 11th character posn on line 1
               LCD_RS <= '0';
               LCD_E  <= '1';
-              LCD_D  <= x"8A";
+			  LCD_D  <= location;
               state  <= CURPOS_CLOCK;
 
             WHEN CURPOS_CLOCK =>

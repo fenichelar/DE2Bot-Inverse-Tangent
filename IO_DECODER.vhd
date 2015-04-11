@@ -18,7 +18,7 @@ ENTITY IO_DECODER IS
     DIG_IN_EN     : OUT STD_LOGIC;
     HEX1_EN       : OUT STD_LOGIC;
     HEX2_EN       : OUT STD_LOGIC;
-    LCD_EN        : OUT STD_LOGIC;
+    LCD_ADDRESS   : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
     LED2_EN       : OUT STD_LOGIC;
     BEEP_EN       : OUT STD_LOGIC;
     CT_EN         : OUT STD_LOGIC;
@@ -60,7 +60,6 @@ begin
   DIG_IN_EN <= '1'    WHEN IO_INT = 16#103# ELSE '0';
   HEX1_EN <= '1'      WHEN IO_INT = 16#104# ELSE '0';
   HEX2_EN <= '1'      WHEN IO_INT = 16#105# ELSE '0';
-  LCD_EN <= '1'       WHEN IO_INT = 16#106# ELSE '0';
   LED2_EN <= '1'      WHEN IO_INT = 16#107# ELSE '0';
   BEEP_EN <= '1'      WHEN IO_INT = 16#10A# ELSE '0';
   CT_EN <= '1'        WHEN IO_INT = 16#10C# ELSE '0';
@@ -80,6 +79,16 @@ begin
   YPOS_EN <= '1'      WHEN IO_INT = 16#1C1# ELSE '0';
   TPOS_EN <= '1'      WHEN IO_INT = 16#1C2# ELSE '0';
   POS_RSTN <= '0'     WHEN IO_INT = 16#1C3# ELSE '1';
-
+  WITH IO_INT SELECT LCD_ADDRESS <=
+	"1000" WHEN 16#1C4#,
+	"1001" WHEN 16#1C5#,
+	"1010" WHEN 16#1C6#,
+	"1011" WHEN 16#1C7#,
+	"1100" WHEN 16#1C8#,
+	"1101" WHEN 16#1C9#,
+	"1110" WHEN 16#1CA#,
+	"1111" WHEN 16#1CB#,
+	"1010" WHEN 16#106#, -- Maintain support for original LCD IO address
+	"0000" WHEN OTHERS;
       
 END a;
