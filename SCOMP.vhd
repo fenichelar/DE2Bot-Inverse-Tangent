@@ -346,8 +346,7 @@ BEGIN
 					STATE <= FETCH;
 
 				WHEN EX_ADDI =>
-					AC    <= AC + (IR(9) & IR(9) & IR(9) & IR(9) &
-					 IR(9) & IR(9) & IR(9 DOWNTO 0));
+					AC    <= AC + SXT(IR(9 DOWNTO 0),16);
 					STATE <= FETCH;
 
 				WHEN EX_ILOAD =>
@@ -389,8 +388,7 @@ BEGIN
 					STATE <= FETCH;
 
 				WHEN EX_LOADI =>
-					AC    <= (IR(9) & IR(9) & IR(9) & IR(9) &
-					 IR(9) & IR(9) & IR(9 DOWNTO 0));
+					AC    <= SXT(IR(9 DOWNTO 0),16);
 					STATE <= FETCH;
 
 				WHEN EX_RETI =>
