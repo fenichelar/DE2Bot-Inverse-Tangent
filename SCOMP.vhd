@@ -51,7 +51,8 @@ ARCHITECTURE a OF SCOMP IS
 		EX_LOADI,
 		EX_RETI,
 		EX_MULT,
-		EX_MOVELOW
+		EX_MOVELOW,
+		EX_DIV
 	);
 
 	TYPE STACK_TYPE IS ARRAY (0 TO 7) OF STD_LOGIC_VECTOR(9 DOWNTO 0);
@@ -77,6 +78,7 @@ ARCHITECTURE a OF SCOMP IS
 	SIGNAL IN_HOLD      : STD_LOGIC;
 	SIGNAL MULTR		: STD_LOGIC_VECTOR( 31 DOWNTO 0);
 	SIGNAL MULTRLOW		: STD_LOGIC_VECTOR( 15 DOWNTO 0);
+	SIGNAL DIVR		    : STD_LOGIC_VECTOR( 23 DOWNTO 0);
 
 BEGIN
 	-- Use altsyncram component for unified program and data memory
@@ -131,6 +133,21 @@ BEGIN
 		dataa => AC(15 DOWNTO 0),
 		datab => MDR(15 DOWNTO 0),
 		result => MULTR
+	);
+	
+	DIVIDER : lpm_divide
+	GENERIC MAP (
+		lpm_drepresentation => "SIGNED",
+		lpm_hint => "LPM_REMAINDERPOSITIVE=TRUE",
+		lpm_nrepresentation => "SIGNED",
+		lpm_type => "LPM_DIVIDE",
+		lpm_widthd => 24,
+		lpm_widthn => 24
+	)
+	PORT MAP (
+		denom => SXT(MDR,24),
+		numer => (AC & "00000000"),
+		quotient => DIVR
 	);
 	
 	-- Use LPM function to drive I/O bus
@@ -262,6 +279,8 @@ BEGIN
 							STATE <= EX_MULT;
 						WHEN "011001" =>        --MOVE TO LOW 
 							STATE <= EX_MOVELOW;
+						WHEN "011010" =>        --DIV
+							STATE <= EX_DIV;
 						
 						WHEN OTHERS =>
 							STATE <= FETCH;      -- Invalid opcodes default to NOP
@@ -387,6 +406,10 @@ BEGIN
 					
 				WHEN EX_MOVELOW=>
 					AC <= MULTRLOW;
+					STATE <= FETCH;
+				
+				WHEN EX_DIV=>
+					AC <= DIVR(15 DOWNTO 0);
 					STATE <= FETCH;
 					
 				WHEN OTHERS =>

@@ -50,7 +50,7 @@ Main: ; "Real" program starts here.
 	OUT    RESETPOS    ; reset odometer in case wheels moved after programming	
 	CALL   UARTClear   ; empty the UART receive FIFO of old data
 
-	JUMP TestMultiply
+	JUMP TestDivide
 	
 Die:
 ; Sometimes it's useful to permanently stop execution.
@@ -70,6 +70,12 @@ Forever:
 ;***************************************************************
 ;* Subroutines
 ;***************************************************************
+
+TestDivide:
+	LOAD Seven
+	DIV Four
+	OUT SSEG2
+	JUMP InfiniteLoop
 
 TestMultiply:
 	LOADI 2
