@@ -49,7 +49,9 @@ ARCHITECTURE a OF SCOMP IS
 		EX_OUT,
 		EX_OUT2,
 		EX_LOADI,
-		EX_RETI
+		EX_RETI,
+		EX_MULT,
+		EX_MOVELOW
 	);
 
 	TYPE STACK_TYPE IS ARRAY (0 TO 7) OF STD_LOGIC_VECTOR(9 DOWNTO 0);
@@ -68,12 +70,13 @@ ARCHITECTURE a OF SCOMP IS
 	SIGNAL MW           : STD_LOGIC;
 	SIGNAL IO_WRITE_INT : STD_LOGIC;
 	SIGNAL GIE          : STD_LOGIC;
-	SIGNAL IIE      : STD_LOGIC_VECTOR( 3 DOWNTO 0);
+	SIGNAL IIE      	: STD_LOGIC_VECTOR( 3 DOWNTO 0);
 	SIGNAL INT_REQ      : STD_LOGIC_VECTOR( 3 DOWNTO 0);
 	SIGNAL INT_REQ_SYNC : STD_LOGIC_VECTOR( 3 DOWNTO 0); -- registered version of INT_REQ
 	SIGNAL INT_ACK      : STD_LOGIC_VECTOR( 3 DOWNTO 0);
 	SIGNAL IN_HOLD      : STD_LOGIC;
-
+	SIGNAL MULTR		: STD_LOGIC_VECTOR( 31 DOWNTO 0);
+	SIGNAL MULTRLOW		: STD_LOGIC_VECTOR( 15 DOWNTO 0);
 
 BEGIN
 	-- Use altsyncram component for unified program and data memory
@@ -114,7 +117,22 @@ BEGIN
 		direction => IR(4),
 		result    => AC_SHIFTED
 	);
-
+	
+	MULTIPLIER: LPM_MULT
+	GENERIC MAP (
+		lpm_hint => "MAXIMIZE_SPEED=5",
+		lpm_representation => "SIGNED",
+		lpm_type => "LPM_MULT",
+		lpm_widtha => 16,
+		lpm_widthb => 16,
+		lpm_widthp => 32
+	)
+	PORT MAP (
+		dataa => AC(15 DOWNTO 0),
+		datab => MDR(15 DOWNTO 0),
+		result => MULTR
+	);
+	
 	-- Use LPM function to drive I/O bus
 	IO_BUS: LPM_BUSTRI
 	GENERIC MAP (
@@ -240,7 +258,11 @@ BEGIN
 							STATE <= EX_RETI;
 						WHEN "010111" =>       -- LOADI
 							STATE <= EX_LOADI;
-
+						WHEN "011000" => 		--MULT
+							STATE <= EX_MULT;
+						WHEN "011001" =>        --MOVE TO LOW 
+							STATE <= EX_MOVELOW;
+						
 						WHEN OTHERS =>
 							STATE <= FETCH;      -- Invalid opcodes default to NOP
 					END CASE;
@@ -357,10 +379,19 @@ BEGIN
 					PC    <= PC_SAVED; -- restore saved registers
 					AC    <= AC_SAVED;
 					STATE <= FETCH;
-
+					
+				WHEN EX_MULT=>
+					AC <= MULTR(31 DOWNTO 16);
+					MULTRLOW <= MULTR(15 DOWNTO 0);
+					STATE <= FETCH;
+					
+				WHEN EX_MOVELOW=>
+					AC <= MULTRLOW;
+					STATE <= FETCH;
+					
 				WHEN OTHERS =>
 					STATE <= FETCH;          -- If an invalid state is reached, return to FETCH
-					
+				
 			END CASE;
 			INT_REQ_SYNC <= INT_REQ;  -- register interrupt requests to SCOMP's clock.
 		END IF;

@@ -50,8 +50,8 @@ Main: ; "Real" program starts here.
 	OUT    RESETPOS    ; reset odometer in case wheels moved after programming	
 	CALL   UARTClear   ; empty the UART receive FIFO of old data
 
-
-
+	JUMP TestMultiply
+	
 Die:
 ; Sometimes it's useful to permanently stop execution.
 ; This will also catch the execution if it accidentally
@@ -70,6 +70,18 @@ Forever:
 ;***************************************************************
 ;* Subroutines
 ;***************************************************************
+
+TestMultiply:
+	LOADI 2
+	SHIFT 8
+	MULT Two
+	OUT SSEG1
+	MOVELOW
+	OUT SSEG2
+	JUMP InfiniteLoop
+
+InfiniteLoop:
+	JUMP InfiniteLoop
 
 ; Subroutine to wait (block) for 1 second
 Wait1:
