@@ -130,8 +130,8 @@ BEGIN
 		lpm_widthp => 32
 	)
 	PORT MAP (
-		dataa => AC(15 DOWNTO 0),
-		datab => MDR(15 DOWNTO 0),
+		dataa => AC,
+		datab => MDR,
 		result => MULTR
 	);
 	
