@@ -345,11 +345,11 @@ XPOS:     EQU &HC0  ; Current X-position (read only)
 YPOS:     EQU &HC1  ; Y-position
 THETA:    EQU &HC2  ; Current rotational position of robot (0-359)
 RESETPOS: EQU &HC3  ; write anything here to reset odometry to 0
-LCD0:     EQU &HC4
-LCD1:     EQU &HC5
-LCD2:     EQU &HC6
-LCD3:     EQU &HC7
-LCD4:     EQU &HC8
-LCD5:     EQU &HC9
-LCD6:     EQU &HCA
-LCD7:     EQU &HCB
+LCD0:     EQU &H70
+LCD1:     EQU &H71
+LCD2:     EQU &H72
+LCD3:     EQU &H73
+LCD4:     EQU &H74
+LCD5:     EQU &H75
+LCD6:     EQU &H76
+LCD7:     EQU &H77
