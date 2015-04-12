@@ -91,22 +91,22 @@ TestLCD:
 	JUMP   InfiniteLoop
 
 TestDivide:
-	LOAD Seven
-	DIV Four
-	OUT SSEG2
-	JUMP InfiniteLoop
+	LOAD   Seven
+	DIV    Four
+	OUT    SSEG2
+	JUMP   InfiniteLoop
 
 TestMultiply:
-	LOADI 2
-	SHIFT 8
-	MULT Two
-	OUT SSEG1
+	LOADI  2
+	SHIFT  8
+	MULT   Two
+	OUT    SSEG1
 	MOVELOW
-	OUT SSEG2
-	JUMP InfiniteLoop
+	OUT    SSEG2
+	JUMP   InfiniteLoop
 
 InfiniteLoop:
-	JUMP InfiniteLoop
+	JUMP   InfiniteLoop
 
 ; Subroutine to wait (block) for 1 second
 Wait1:
