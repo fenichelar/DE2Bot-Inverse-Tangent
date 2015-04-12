@@ -50,7 +50,7 @@ Main: ; "Real" program starts here.
 	OUT    RESETPOS    ; reset odometer in case wheels moved after programming	
 	CALL   UARTClear   ; empty the UART receive FIFO of old data
 
-	JUMP TestDivide
+	JUMP   TestLCD
 	
 Die:
 ; Sometimes it's useful to permanently stop execution.
@@ -70,6 +70,25 @@ Forever:
 ;***************************************************************
 ;* Subroutines
 ;***************************************************************
+
+TestLCD:
+	LOAD   Zero
+	OUT    LCD0
+	LOAD   One
+	OUT    LCD1
+	LOAD   Two
+	OUT    LCD2
+	LOAD   Three
+	OUT    LCD3
+	LOAD   Four
+	OUT    LCD4
+	LOAD   Five
+	OUT    LCD5
+	LOAD   Six
+	OUT    LCD6
+	LOAD   Seven
+	OUT    LCD7
+	JUMP   InfiniteLoop
 
 TestDivide:
 	LOAD Seven
