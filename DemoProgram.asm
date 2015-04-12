@@ -90,6 +90,19 @@ TestLCD:
 	OUT    LCD7
 	JUMP   InfiniteLoop
 
+TestMultiplyDivide:
+	CALL   GetInputA
+	CALL   GetInputB
+	LOAD   GetInputA
+	DIV    GetInputB
+	OUT    LCD4
+	LOAD   GetInputA
+	MULT   GetInputB
+	OUT    LCD6
+	MOVELOW
+	OUT    LCD7
+	RETURN
+
 TestDivide:
 	LOAD   Seven
 	DIV    Four
@@ -107,6 +120,32 @@ TestMultiply:
 
 InfiniteLoop:
 	JUMP   InfiniteLoop
+
+GetInputA:
+	LOAD   Zero
+	ADDI   160
+	OUT    LCD0
+	IN     SWITCHES
+	OUT    LCD1
+	IN     XIO
+	AND    Mask2
+	JPOS   GetInputA
+	IN     SWITCHES
+	STORE  InputA
+	RETURN
+
+GetInputB:
+	LOAD   Zero
+	ADDI   176
+	OUT    LCD2
+	IN     SWITCHES
+	OUT    LCD3
+	IN     XIO
+	AND    Mask2
+	JPOS   GetInputB
+	IN     SWITCHES
+	STORE  InputB
+	RETURN
 
 ; Subroutine to wait (block) for 1 second
 Wait1:
@@ -254,6 +293,8 @@ UARTClear:
 ;* Variables
 ;***************************************************************
 Temp:     DW 0 ; "Temp" is not a great name, but can be useful
+InputA:          DW 0
+InputB:          DW 0
 
 ;***************************************************************
 ;* Constants
