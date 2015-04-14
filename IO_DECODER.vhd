@@ -18,7 +18,7 @@ ENTITY IO_DECODER IS
     DIG_IN_EN     : OUT STD_LOGIC;
     HEX1_EN       : OUT STD_LOGIC;
     HEX2_EN       : OUT STD_LOGIC;
-    LCD_ADDRESS   : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+    LCD_EN        : OUT STD_LOGIC;
     LED2_EN       : OUT STD_LOGIC;
     BEEP_EN       : OUT STD_LOGIC;
     CT_EN         : OUT STD_LOGIC;
@@ -79,15 +79,5 @@ begin
   YPOS_EN <= '1'      WHEN IO_INT = 16#1C1# ELSE '0';
   TPOS_EN <= '1'      WHEN IO_INT = 16#1C2# ELSE '0';
   POS_RSTN <= '0'     WHEN IO_INT = 16#1C3# ELSE '1';
-  WITH IO_INT SELECT LCD_ADDRESS <=
-	"1000" WHEN 16#170#,
-	"1001" WHEN 16#171#,
-	"1010" WHEN 16#172#,
-	"1011" WHEN 16#173#,
-	"1100" WHEN 16#174#,
-	"1101" WHEN 16#175#,
-	"1110" WHEN 16#176#,
-	"1111" WHEN 16#177#,
-	"1010" WHEN 16#106#, -- Maintain support for original LCD IO address
-	"0000" WHEN OTHERS;
+  LCD_EN <= '1'       WHEN ((IO_INT >= 16#170#) AND (IO_INT < 16#177#) ) ELSE '0';
 END a;

@@ -23,7 +23,7 @@ ENTITY SLCD IS
     RESETN      : IN  STD_LOGIC;
     CS          : IN  STD_LOGIC;
     IO_DATA     : IN  STD_LOGIC_VECTOR(15 DOWNTO 0);
-    ADDR        : IN  STD_LOGIC_VECTOR(2 DOWNTO 0);
+    IO_ADDR     : IN  STD_LOGIC_VECTOR(2 DOWNTO 0);
     LCD_RS      : OUT STD_LOGIC;
     LCD_RW      : OUT STD_LOGIC;
     LCD_E       : OUT STD_LOGIC;
@@ -39,22 +39,24 @@ ARCHITECTURE a OF SLCD IS
     INIT_CLOCK,
     CURPOS,
     CURPOS_CLOCK,
+    NEXTLINE,
+    NEXTLINE_CLOCK,
     SWRITE,
     SWRITE_CLOCK
   );
-
+  
+  TYPE LCD_DATA_TYPE IS ARRAY (0 TO 7) OF STD_LOGIC_VECTOR(15 DOWNTO 0);
   TYPE CSTR15_TYPE IS ARRAY (0 TO 15) OF STD_LOGIC_VECTOR(7 DOWNTO 0);
   TYPE CSTR08_TYPE IS ARRAY (0 TO  7) OF STD_LOGIC_VECTOR(7 DOWNTO 0);
-  TYPE CSTR04_TYPE IS ARRAY (0 TO  3) OF STD_LOGIC_VECTOR(7 DOWNTO 0);
+  TYPE CSTR04_TYPE IS ARRAY (0 TO  31) OF STD_LOGIC_VECTOR(7 DOWNTO 0);
 
   SIGNAL state   : STATE_TYPE;
+  SIGNAL lcd_data : LCD_DATA_TYPE;
   SIGNAL ascii   : CSTR15_TYPE;
   SIGNAL cstr    : CSTR04_TYPE;
   SIGNAL istr    : CSTR08_TYPE;
   SIGNAL count   : INTEGER RANGE 0 TO 1000;
   SIGNAL delay   : INTEGER RANGE 0 TO 100;
-  SIGNAL data_in : STD_LOGIC_VECTOR(15 DOWNTO 0);
-  SIGNAL location : STD_LOGIC_VECTOR(7 DOWNTO 0);
 
 
   BEGIN
@@ -86,28 +88,60 @@ ARCHITECTURE a OF SLCD IS
     ascii(15) <= x"46";
 
     LCD_RW  <= '0';
-    cstr(0) <= ascii(CONV_INTEGER(data_in( 3 DOWNTO  0)));
-    cstr(1) <= ascii(CONV_INTEGER(data_in( 7 DOWNTO  4)));
-    cstr(2) <= ascii(CONV_INTEGER(data_in(11 DOWNTO  8)));
-    cstr(3) <= ascii(CONV_INTEGER(data_in(15 DOWNTO 12)));
-
-	WITH ADDR SELECT location <=
-		x"83" WHEN "000",
-		x"87" WHEN "001",
-		x"8B" WHEN "010",
-		x"8F" WHEN "011",
-		x"C3" WHEN "100",
-		x"C7" WHEN "101",
-		x"CB" WHEN "110",
-		x"CF" WHEN "111";
+    cstr(28) <= ascii(CONV_INTEGER(lcd_data(0)( 3 DOWNTO  0)));
+    cstr(29) <= ascii(CONV_INTEGER(lcd_data(0)( 7 DOWNTO  4)));
+    cstr(30) <= ascii(CONV_INTEGER(lcd_data(0)( 11 DOWNTO  8)));
+    cstr(31) <= ascii(CONV_INTEGER(lcd_data(0)( 15 DOWNTO  12)));
+    
+    cstr(24) <= ascii(CONV_INTEGER(lcd_data(1)( 3 DOWNTO  0)));
+    cstr(25) <= ascii(CONV_INTEGER(lcd_data(1)( 7 DOWNTO  4)));
+    cstr(26) <= ascii(CONV_INTEGER(lcd_data(1)( 11 DOWNTO  8)));
+    cstr(27) <= ascii(CONV_INTEGER(lcd_data(1)( 15 DOWNTO  12)));
+    
+    cstr(20) <= ascii(CONV_INTEGER(lcd_data(2)( 3 DOWNTO  0)));
+    cstr(21) <= ascii(CONV_INTEGER(lcd_data(2)( 7 DOWNTO  4)));
+    cstr(22) <= ascii(CONV_INTEGER(lcd_data(2)( 11 DOWNTO  8)));
+    cstr(23) <= ascii(CONV_INTEGER(lcd_data(2)( 15 DOWNTO  12)));
+    
+    cstr(16) <= ascii(CONV_INTEGER(lcd_data(3)( 3 DOWNTO  0)));
+    cstr(17) <= ascii(CONV_INTEGER(lcd_data(3)( 7 DOWNTO  4)));
+    cstr(18) <= ascii(CONV_INTEGER(lcd_data(3)( 11 DOWNTO  8)));
+    cstr(19) <= ascii(CONV_INTEGER(lcd_data(3)( 15 DOWNTO  12)));
+    
+    cstr(12) <= ascii(CONV_INTEGER(lcd_data(4)( 3 DOWNTO  0)));
+    cstr(13) <= ascii(CONV_INTEGER(lcd_data(4)( 7 DOWNTO  4)));
+    cstr(14) <= ascii(CONV_INTEGER(lcd_data(4)( 11 DOWNTO  8)));
+    cstr(15) <= ascii(CONV_INTEGER(lcd_data(4)( 15 DOWNTO  12)));
+    
+    cstr(8) <= ascii(CONV_INTEGER(lcd_data(5)( 3 DOWNTO  0)));
+    cstr(9) <= ascii(CONV_INTEGER(lcd_data(5)( 7 DOWNTO  4)));
+    cstr(10) <= ascii(CONV_INTEGER(lcd_data(5)( 11 DOWNTO  8)));
+    cstr(11) <= ascii(CONV_INTEGER(lcd_data(5)( 15 DOWNTO  12)));
+    
+    cstr(4) <= ascii(CONV_INTEGER(lcd_data(6)( 3 DOWNTO  0)));
+    cstr(5) <= ascii(CONV_INTEGER(lcd_data(6)( 7 DOWNTO  4)));
+    cstr(6) <= ascii(CONV_INTEGER(lcd_data(6)( 11 DOWNTO  8)));
+    cstr(7) <= ascii(CONV_INTEGER(lcd_data(6)( 15 DOWNTO  12)));
+    
+    cstr(0) <= ascii(CONV_INTEGER(lcd_data(7)( 3 DOWNTO  0)));
+    cstr(1) <= ascii(CONV_INTEGER(lcd_data(7)( 7 DOWNTO  4)));
+    cstr(2) <= ascii(CONV_INTEGER(lcd_data(7)( 11 DOWNTO  8)));
+    cstr(3) <= ascii(CONV_INTEGER(lcd_data(7)( 15 DOWNTO  12)));
 
     -- This process latches the incoming data value on the rising edge of CS
     PROCESS (RESETN, CS)
       BEGIN
         IF (RESETN = '0') THEN
-          data_in <= x"0000";
+          lcd_data(0) <= x"0000";
+          lcd_data(1) <= x"0000";
+          lcd_data(2) <= x"0000";
+          lcd_data(3) <= x"0000";
+          lcd_data(4) <= x"0000";
+          lcd_data(5) <= x"0000";
+          lcd_data(6) <= x"0000";
+          lcd_data(7) <= x"0000";
         ELSIF (RISING_EDGE(CS)) THEN
-          data_in <= IO_DATA;
+          lcd_data(CONV_INTEGER(IO_ADDR)) <= IO_DATA;
         END IF;
       END PROCESS;
 
@@ -156,15 +190,25 @@ ARCHITECTURE a OF SLCD IS
             -- all remaining states have no waits.  100 us per state
             -- write (enable) states alternate with latching states
 
-            WHEN CURPOS =>            -- Move to 11th character posn on line 1
+            WHEN CURPOS =>
               LCD_RS <= '0';
               LCD_E  <= '1';
-			  LCD_D  <= location;
+			  LCD_D  <= x"CF";
               state  <= CURPOS_CLOCK;
 
             WHEN CURPOS_CLOCK =>
               LCD_E <= '0';
               count <= 0;
+              state <= SWRITE;
+
+            WHEN NEXTLINE =>
+              LCD_RS <= '0';
+              LCD_E  <= '1';
+			  LCD_D  <= x"8F";
+              state  <= NEXTLINE_CLOCK;
+
+            WHEN NEXTLINE_CLOCK =>
+              LCD_E <= '0';
               state <= SWRITE;
 
             WHEN SWRITE =>            -- Write (least significant digit first)
@@ -176,8 +220,10 @@ ARCHITECTURE a OF SLCD IS
 
             WHEN SWRITE_CLOCK =>      -- Finish write (moves left on screen in chosen mode)
               LCD_E <= '0';
-              IF (count >= 4) THEN
+              IF (count >= 32) THEN
                 state <= CURPOS;
+              ELSIF (count = 16) THEN
+                state <= NEXTLINE;
               ELSE
                 state <= SWRITE;
               END IF;
