@@ -50,8 +50,13 @@ Main: ; "Real" program starts here.
 	OUT    RESETPOS    ; reset odometer in case wheels moved after programming	
 	CALL   UARTClear   ; empty the UART receive FIFO of old data
 
-	CALL   TestLCD
-	JUMP   InfiniteLoop
+	LOADI  91
+	OUT    LCDEN
+	
+Test:
+	
+	CALL   TestMultiplyDivide
+	JUMP   Test
 	
 Die:
 ; Sometimes it's useful to permanently stop execution.
@@ -73,6 +78,8 @@ Forever:
 ;***************************************************************
 
 TestLCD:
+	LOAD   LowByte
+	OUT    LCDEN
 	LOAD   Zero
 	OUT    LCD0
 	LOAD   One
@@ -92,16 +99,34 @@ TestLCD:
 	RETURN
 
 TestMultiplyDivide:
+	; Get Inputs
 	CALL   GetInputA
 	CALL   GetInputB
-	LOAD   GetInputA
-	DIV    GetInputB
+	; Divide
+	LOAD   InputA
+	DIV    InputB
 	OUT    LCD4
-	LOAD   GetInputA
-	MULT   GetInputB
+	; Multiply
+	LOAD   InputA
+	MULT   InputB
 	OUT    LCD6
 	MOVELOW
 	OUT    LCD7
+TestMultiplyDivideDone:
+	; Blink LED5 and LED7
+	IN     TIMER
+	AND    Mask1
+	SHIFT  5
+	STORE  Temp
+	SHIFT  1
+	OR     Temp
+	OUT    XLEDS
+	; Disabled LEDS and continue when KEY3 is pressed
+	IN     XIO
+	AND    Mask2
+	JPOS   TestMultiplyDivideDone
+	LOAD   Zero
+	OUT    XLEDS
 	RETURN
 
 TestDivide:
@@ -123,27 +148,49 @@ InfiniteLoop:
 	JUMP   InfiniteLoop
 
 GetInputA:
-	LOAD   Zero
-	ADDI   160
-	OUT    LCD0
+	; Output SWITCHES to LCD1
 	IN     SWITCHES
 	OUT    LCD1
+
+	; Blink LED4 and LED5
+	IN     TIMER
+	AND    Mask1
+	SHIFT  3
+	STORE  Temp
+	SHIFT  1
+	OR     Temp
+	OUT    XLEDS
+
+	; Store SWITCHES in InputA and disabled LEDS when KEY2 is pressed
 	IN     XIO
-	AND    Mask2
+	AND    Mask1
 	JPOS   GetInputA
+	LOAD   Zero
+	OUT    XLEDS
 	IN     SWITCHES
 	STORE  InputA
 	RETURN
 
 GetInputB:
-	LOAD   Zero
-	ADDI   176
-	OUT    LCD2
+	; Output SWITCHES to LCD3
 	IN     SWITCHES
 	OUT    LCD3
+
+	; Blink LED2 and LED3
+	IN     TIMER
+	AND    Mask1
+	SHIFT  1
+	STORE  Temp
+	SHIFT  1
+	OR     Temp
+	OUT    XLEDS
+	
+	; Store SWITCHES in InputB and disabled LEDS when KEY1 is pressed
 	IN     XIO
-	AND    Mask2
+	AND    Mask0
 	JPOS   GetInputB
+	LOAD   Zero
+	OUT    XLEDS
 	IN     SWITCHES
 	STORE  InputB
 	RETURN
