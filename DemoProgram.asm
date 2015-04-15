@@ -77,27 +77,6 @@ Forever:
 ;* Subroutines
 ;***************************************************************
 
-TestLCD:
-	LOAD   LowByte
-	OUT    LCDEN
-	LOAD   Zero
-	OUT    LCD0
-	LOAD   One
-	OUT    LCD1
-	LOAD   Two
-	OUT    LCD2
-	LOAD   Three
-	OUT    LCD3
-	LOAD   Four
-	OUT    LCD4
-	LOAD   Five
-	OUT    LCD5
-	LOAD   Six
-	OUT    LCD6
-	LOAD   Seven
-	OUT    LCD7
-	RETURN
-
 TestMultiplyDivide:
 	; Get Inputs
 	CALL   GetInputA
@@ -128,21 +107,6 @@ TestMultiplyDivideDone:
 	LOAD   Zero
 	OUT    XLEDS
 	RETURN
-
-TestDivide:
-	LOAD   Seven
-	DIV    Four
-	OUT    SSEG2
-	JUMP   InfiniteLoop
-
-TestMultiply:
-	LOADI  2
-	SHIFT  8
-	MULT   Two
-	OUT    SSEG1
-	MOVELOW
-	OUT    SSEG2
-	JUMP   InfiniteLoop
 
 InfiniteLoop:
 	JUMP   InfiniteLoop
