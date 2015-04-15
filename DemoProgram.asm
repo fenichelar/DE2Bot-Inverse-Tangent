@@ -50,13 +50,13 @@ Main: ; "Real" program starts here.
 	OUT    RESETPOS    ; reset odometer in case wheels moved after programming	
 	CALL   UARTClear   ; empty the UART receive FIFO of old data
 
-	LOADI  91
+	LOADI  64
 	OUT    LCDEN
-	
+
 Test:
-	
-	CALL   TestMultiplyDivide
+	CALL   TestRotateTo
 	JUMP   Test
+	
 	
 Die:
 ; Sometimes it's useful to permanently stop execution.
@@ -76,6 +76,15 @@ Forever:
 ;***************************************************************
 ;* Subroutines
 ;***************************************************************
+
+TestRotateTo:
+	IN     THETA
+	OUT    SSEG1
+	CALL   GetInputA
+	LOAD   InputA
+	STORE  rotateToTheta
+	CALL   RotateTo
+	RETURN
 
 TestMultiplyDivide:
 	; Get Inputs
@@ -158,6 +167,36 @@ GetInputB:
 	IN     SWITCHES
 	STORE  InputB
 	RETURN
+
+; Subroutine to rotate the robot to angle specified in rotateToTheta
+RotateTo:
+	LOAD   rotateToTheta
+	OUT    SSEG2
+	IN     THETA             ; get the current angular position
+	OUT    SSEG1
+	SUB    rotateToTheta     ; get difference between current and goal angular position
+	JNEG   TurnLeft          ; if difference is negative turn left
+	JPOS   TurnRight         ; if difference is positive turn right
+	LOAD   Zero              ; otherwise difference is 0 so done
+	OUT    LVELCMD
+	OUT    RVELCMD
+	RETURN
+
+TurnLeft:
+	LOAD   RSlow
+	JUMP   Turn
+
+TurnRight:
+	LOAD   FSlow
+	JUMP   Turn
+	
+Turn:
+	STORE  Temp
+	OUT    LVELCMD
+	LOAD   Zero
+	SUB    Temp
+	OUT    RVELCMD
+	JUMP   rotateTo
 
 ; Subroutine to wait (block) for 1 second
 Wait1:
@@ -307,6 +346,7 @@ UARTClear:
 Temp:     DW 0 ; "Temp" is not a great name, but can be useful
 InputA:          DW 0
 InputB:          DW 0
+rotateToTheta:   DW 0
 
 ;***************************************************************
 ;* Constants
