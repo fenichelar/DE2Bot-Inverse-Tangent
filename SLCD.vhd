@@ -23,7 +23,7 @@ ENTITY SLCD IS
     RESETN      : IN  STD_LOGIC;
     CS          : IN  STD_LOGIC;
     IO_DATA     : IN  STD_LOGIC_VECTOR(15 DOWNTO 0);
-    IO_ADDR     : IN  STD_LOGIC_VECTOR(2 DOWNTO 0);
+    IO_ADDR     : IN  STD_LOGIC_VECTOR(3 DOWNTO 0);
     LCD_RS      : OUT STD_LOGIC;
     LCD_RW      : OUT STD_LOGIC;
     LCD_E       : OUT STD_LOGIC;
@@ -57,6 +57,7 @@ ARCHITECTURE a OF SLCD IS
   SIGNAL istr    : CSTR08_TYPE;
   SIGNAL count   : INTEGER RANGE 0 TO 1000;
   SIGNAL delay   : INTEGER RANGE 0 TO 100;
+  SIGNAL enabled : STD_LOGIC_VECTOR(31 DOWNTO 0);
 
 
   BEGIN
@@ -140,8 +141,20 @@ ARCHITECTURE a OF SLCD IS
           lcd_data(5) <= x"0000";
           lcd_data(6) <= x"0000";
           lcd_data(7) <= x"0000";
+          enabled     <= x"00000000";
         ELSIF (RISING_EDGE(CS)) THEN
-          lcd_data(CONV_INTEGER(IO_ADDR)) <= IO_DATA;
+          IF (CONV_INTEGER(IO_ADDR) > 7) THEN
+            enabled(3 DOWNTO 0)    <= (IO_DATA(0) & IO_DATA(0) & IO_DATA(0) & IO_DATA(0));
+			enabled(7 DOWNTO 4)    <= (IO_DATA(1) & IO_DATA(1) & IO_DATA(1) & IO_DATA(1));
+			enabled(11 DOWNTO 8)   <= (IO_DATA(2) & IO_DATA(2) & IO_DATA(2) & IO_DATA(2));
+			enabled(15 DOWNTO 12)  <= (IO_DATA(3) & IO_DATA(3) & IO_DATA(3) & IO_DATA(3));
+			enabled(19 DOWNTO 16)  <= (IO_DATA(4) & IO_DATA(4) & IO_DATA(4) & IO_DATA(4));
+			enabled(23 DOWNTO 20)  <= (IO_DATA(5) & IO_DATA(5) & IO_DATA(5) & IO_DATA(5));
+			enabled(27 DOWNTO 24)  <= (IO_DATA(6) & IO_DATA(6) & IO_DATA(6) & IO_DATA(6));
+			enabled(31 DOWNTO 28)  <= (IO_DATA(7) & IO_DATA(7) & IO_DATA(7) & IO_DATA(7));
+          ELSE
+            lcd_data(CONV_INTEGER(IO_ADDR)) <= IO_DATA;
+          END IF;
         END IF;
       END PROCESS;
 
@@ -214,7 +227,11 @@ ARCHITECTURE a OF SLCD IS
             WHEN SWRITE =>            -- Write (least significant digit first)
               LCD_RS <= '1';
               LCD_E  <= '1';
-              LCD_D  <= cstr(count);
+              IF (enabled(count) = '1') THEN
+                LCD_D  <= cstr(count);
+              ELSE
+                LCD_D  <= x"20";
+              END IF;
               count  <= count + 1;
               state <= SWRITE_CLOCK;
 

@@ -50,7 +50,8 @@ Main: ; "Real" program starts here.
 	OUT    RESETPOS    ; reset odometer in case wheels moved after programming	
 	CALL   UARTClear   ; empty the UART receive FIFO of old data
 
-	JUMP   TestLCD
+	CALL   TestLCD
+	JUMP   InfiniteLoop
 	
 Die:
 ; Sometimes it's useful to permanently stop execution.
@@ -88,7 +89,7 @@ TestLCD:
 	OUT    LCD6
 	LOAD   Seven
 	OUT    LCD7
-	JUMP   InfiniteLoop
+	RETURN
 
 TestMultiplyDivide:
 	CALL   GetInputA
@@ -324,7 +325,9 @@ Mask4:    DW &B00010000
 Mask5:    DW &B00100000
 Mask6:    DW &B01000000
 Mask7:    DW &B10000000
-LowByte:  DW &HFF      ; binary 00000000 1111111
+LowByte:  DW &HFF      ; binary 00000000 11111111
+HighByte: DW &HFF00    ; binary 11111111 00000000
+AllBytes: DW &HFFFF    ; binary 11111111 11111111
 LowNibl:  DW &HF       ; 0000 0000 0000 1111
 
 ; some useful movement values
@@ -394,3 +397,4 @@ LCD4:     EQU &H74
 LCD5:     EQU &H75
 LCD6:     EQU &H76
 LCD7:     EQU &H77
+LCDEN:    EQU &H78

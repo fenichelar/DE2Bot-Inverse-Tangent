@@ -79,5 +79,5 @@ begin
   YPOS_EN <= '1'      WHEN IO_INT = 16#1C1# ELSE '0';
   TPOS_EN <= '1'      WHEN IO_INT = 16#1C2# ELSE '0';
   POS_RSTN <= '0'     WHEN IO_INT = 16#1C3# ELSE '1';
-  LCD_EN <= '1'       WHEN ((IO_INT >= 16#170#) AND (IO_INT < 16#177#) ) ELSE '0';
+  LCD_EN <= '1'       WHEN ((IO_INT >= 16#170#) AND (IO_INT <= 16#178#) ) ELSE '0';
 END a;
