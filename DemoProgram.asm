@@ -173,10 +173,31 @@ RotateTo:
 	LOAD   rotateToTheta
 	OUT    SSEG2
 	IN     THETA             ; get the current angular position
+	STORE  Temp
+	LOAD   rotateToTheta
+	SUB    Temp
+	STORE  Temp
+	ADDI   180
+	JNEG   LessThanNegative180
+	ADDI   -360
+	JPOS   GreaterThanPositive180
+	ADDI   180
+	STORE  Temp
+	JUMP   ExecuteRotate
+LessThanNegative180:
+	ADDI   360
+	STORE  Temp
+	JUMP   ExecuteRotate
+GreaterThanPositive180:
+	ADDI   -360
+	STORE  Temp
+	JUMP   ExecuteRotate
+ExecuteRotate:
+	IN     THETA
 	OUT    SSEG1
-	SUB    rotateToTheta     ; get difference between current and goal angular position
-	JNEG   TurnLeft          ; if difference is negative turn left
-	JPOS   TurnRight         ; if difference is positive turn right
+	LOAD   Temp
+	JNEG   TurnRight         ; if difference is negative turn right
+	JPOS   TurnLeft          ; if difference is positive turn left
 	LOAD   Zero              ; otherwise difference is 0 so done
 	OUT    LVELCMD
 	OUT    RVELCMD
