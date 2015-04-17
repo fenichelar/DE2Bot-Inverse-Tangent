@@ -54,7 +54,7 @@ Main: ; "Real" program starts here.
 	OUT    LCDEN
 
 Test:
-	CALL   TestInverseTangent
+	CALL   TestGoTo
 	JUMP   Test
 	
 	
@@ -76,15 +76,44 @@ Forever:
 ;***************************************************************
 ;* Test Functions
 ;***************************************************************
+TestGoTo:
+	; Get Inputs
+	CALL   GetInputA
+	CALL   GetInputB
+	; Store Inputs
+	LOAD   InputA
+	STORE  goToX
+	LOAD   InputB
+	STORE  goToY
+	; Call GoTo
+	CALL   GoTo
+TestGoToDone:
+	; Blink LED6 and LED7
+	IN     TIMER
+	AND    Mask1
+	SHIFT  5
+	STORE  Temp
+	SHIFT  1
+	OR     Temp
+	OUT    XLEDS
+	; Disabled LEDS and continue when KEY3 is pressed
+	IN     XIO
+	AND    Mask2
+	JPOS   TestGoToDone
+	LOAD   Zero
+	OUT    XLEDS
+	RETURN
+
 TestInverseTangent:
 	; Get Inputs
 	CALL   GetInputA
 	CALL   GetInputB
-	; 
+	; Store Inputs
 	LOAD   InputA
 	STORE  inverseTangentX
 	LOAD   InputB
 	STORE  inverseTangentY
+	; Call Inverse Tangent
 	CALL   InverseTangent
 	LOAD   inverseTangentTheta
 	OUT    LCD4
@@ -108,8 +137,6 @@ TestInverseTangentDone:
 	RETURN
 
 TestRotateTo:
-	IN     THETA
-	OUT    SSEG1
 	CALL   GetInputA
 	LOAD   InputA
 	STORE  rotateToTheta
@@ -347,19 +374,15 @@ UARTClear:
 ;***************************************************************
 ; Subroutine to send the robot to coordinates specified in goToX and goToY
 GoTo:
-	LOAD   goToX
-	OUT    LCD3
 	IN     XPOS              ; get the current X position
-	OUT    LCD0
+	OUT    LCD4
 	STORE  Temp
 	LOAD   goToX
 	SUB    Temp
 	STORE  inverseTangentX   ; store change in X position required
 
-	LOAD   goToY
-	OUT    LCD7
 	IN     YPOS              ; get the current Y position
-	OUT    LCD4
+	OUT    LCD6
 	STORE  Temp
 	LOAD   goToY
 	SUB    Temp
