@@ -548,6 +548,7 @@ goToY:           DW 0
 inverseTangentX: DW 0
 inverseTangentY: DW 0
 inverseTangentTheta: DW 0
+inverseTangentRatio: DW 0
 
 ;***************************************************************
 ;* Constants
@@ -600,9 +601,6 @@ RFast:    DW -500
 MinBatt:  DW 130       ; 13.0V - minimum safe battery voltage
 I2CWCmd:  DW &H1190    ; write one i2c byte, read one byte, addr 0x90
 I2CRCmd:  DW &H0190    ; write nothing, read one byte, addr 0x90
-
-inverseTangentRatio:
-	DW              0
 
 inverseTangentRatioOffset:
 	DW				&B0000000001111010 ; 0.4765625 ~= 0.4750
