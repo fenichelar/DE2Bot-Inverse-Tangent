@@ -196,6 +196,48 @@ GetInputB:
 	STORE  InputB
 	RETURN
 
+; Subroutine to send the robot to coordinates specified in goToX and goToY
+GoTo:
+	LOAD   goToX
+	OUT    LCD3
+	IN     XPOS              ; get the current X position
+	OUT    LCD0
+	STORE  Temp
+	LOAD   goToX
+	SUB    Temp
+	STORE  inverseTangentX   ; store change in X position required
+
+	LOAD   goToY
+	OUT    LCD7
+	IN     YPOS              ; get the current Y position
+	OUT    LCD4
+	STORE  Temp
+	LOAD   goToY
+	SUB    Temp
+	STORE  inverseTangentY   ; store change in Y position required
+	JPOS   CheckPosition
+	JNEG   CheckPosition
+	SUB    inverseTangentX
+	JZERO  PositionReached
+
+CheckPosition:
+	CALL   InverseTangent
+	LOAD   inverseTangentTheta
+	STORE  rotateToTheta
+	CALL   RotateTo
+
+MoveForward:
+	LOAD   FFast
+	OUT    LVELCMD
+	OUT    RVELCMD
+	JUMP   GoTo
+
+PositionReached:
+	LOAD   Zero
+	OUT    LVELCMD
+	OUT    RVELCMD
+	RETURN	
+
 ; Subroutine to rotate the robot to angle specified in rotateToTheta
 RotateTo:
 	LOAD   rotateToTheta
