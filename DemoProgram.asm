@@ -72,9 +72,9 @@ Forever:
 	JUMP   Forever      ; Do this forever.
 	DEAD:  DW &HDEAD    ; Example of a "global variable"
 
-	
+
 ;***************************************************************
-;* Subroutines
+;* Test Functions
 ;***************************************************************
 TestInverseTangent:
 	; Get Inputs
@@ -145,9 +145,9 @@ TestMultiplyDivideDone:
 	OUT    XLEDS
 	RETURN
 
-InfiniteLoop:
-	JUMP   InfiniteLoop
-
+;***************************************************************
+;* Helper Functions
+;***************************************************************
 GetInputA:
 	; Output SWITCHES to LCD1
 	IN     SWITCHES
@@ -196,91 +196,8 @@ GetInputB:
 	STORE  InputB
 	RETURN
 
-; Subroutine to send the robot to coordinates specified in goToX and goToY
-GoTo:
-	LOAD   goToX
-	OUT    LCD3
-	IN     XPOS              ; get the current X position
-	OUT    LCD0
-	STORE  Temp
-	LOAD   goToX
-	SUB    Temp
-	STORE  inverseTangentX   ; store change in X position required
-
-	LOAD   goToY
-	OUT    LCD7
-	IN     YPOS              ; get the current Y position
-	OUT    LCD4
-	STORE  Temp
-	LOAD   goToY
-	SUB    Temp
-	STORE  inverseTangentY   ; store change in Y position required
-	JPOS   CheckPosition
-	JNEG   CheckPosition
-	SUB    inverseTangentX
-	JZERO  PositionReached
-
-CheckPosition:
-	CALL   InverseTangent
-	LOAD   inverseTangentTheta
-	STORE  rotateToTheta
-	CALL   RotateTo
-
-MoveForward:
-	LOAD   FFast
-	OUT    LVELCMD
-	OUT    RVELCMD
-	JUMP   GoTo
-
-PositionReached:
-	LOAD   Zero
-	OUT    LVELCMD
-	OUT    RVELCMD
-	RETURN	
-
-; Subroutine to rotate the robot to angle specified in rotateToTheta
-RotateTo:
-	LOAD   rotateToTheta
-	OUT    SSEG2
-	IN     THETA             ; get the current angular position
-	OUT    SSEG1
-	STORE  Temp
-	LOAD   rotateToTheta
-	SUB    Temp
-	ADDI   180
-	JNEG   LessThanNegative180
-	ADDI   -360
-	JPOS   GreaterThanPositive180
-	ADDI   180
-	JUMP   ExecuteRotate
-LessThanNegative180:
-	ADDI   360
-	JUMP   ExecuteRotate
-GreaterThanPositive180:
-	ADDI   -360
-ExecuteRotate:
-	JNEG   TurnRight         ; if difference is negative turn right
-	JPOS   TurnLeft          ; if difference is positive turn left
-	LOAD   Zero              ; otherwise difference is 0 so done
-	OUT    LVELCMD
-	OUT    RVELCMD
-	RETURN
-
-TurnLeft:
-	LOAD   RSlow
-	JUMP   Turn
-
-TurnRight:
-	LOAD   FSlow
-	JUMP   Turn
-	
-Turn:
-	STORE  Temp
-	OUT    LVELCMD
-	LOAD   Zero
-	SUB    Temp
-	OUT    RVELCMD
-	JUMP   rotateTo
+InfiniteLoop:
+	JUMP   InfiniteLoop
 
 ; Subroutine to wait (block) for 1 second
 Wait1:
@@ -424,6 +341,95 @@ UARTClear:
 	IN     UART_DAT
 	JNEG   UARTClear
 	RETURN
+
+;***************************************************************
+;* Main Function
+;***************************************************************
+; Subroutine to send the robot to coordinates specified in goToX and goToY
+GoTo:
+	LOAD   goToX
+	OUT    LCD3
+	IN     XPOS              ; get the current X position
+	OUT    LCD0
+	STORE  Temp
+	LOAD   goToX
+	SUB    Temp
+	STORE  inverseTangentX   ; store change in X position required
+
+	LOAD   goToY
+	OUT    LCD7
+	IN     YPOS              ; get the current Y position
+	OUT    LCD4
+	STORE  Temp
+	LOAD   goToY
+	SUB    Temp
+	STORE  inverseTangentY   ; store change in Y position required
+	JPOS   CheckPosition
+	JNEG   CheckPosition
+	SUB    inverseTangentX
+	JZERO  PositionReached
+
+CheckPosition:
+	CALL   InverseTangent
+	LOAD   inverseTangentTheta
+	STORE  rotateToTheta
+	CALL   RotateTo
+
+MoveForward:
+	LOAD   FFast
+	OUT    LVELCMD
+	OUT    RVELCMD
+	JUMP   GoTo
+
+PositionReached:
+	LOAD   Zero
+	OUT    LVELCMD
+	OUT    RVELCMD
+	RETURN	
+
+; Subroutine to rotate the robot to angle specified in rotateToTheta
+RotateTo:
+	LOAD   rotateToTheta
+	OUT    SSEG2
+	IN     THETA             ; get the current angular position
+	OUT    SSEG1
+	STORE  Temp
+	LOAD   rotateToTheta
+	SUB    Temp
+	ADDI   180
+	JNEG   LessThanNegative180
+	ADDI   -360
+	JPOS   GreaterThanPositive180
+	ADDI   180
+	JUMP   ExecuteRotate
+LessThanNegative180:
+	ADDI   360
+	JUMP   ExecuteRotate
+GreaterThanPositive180:
+	ADDI   -360
+ExecuteRotate:
+	JNEG   TurnRight         ; if difference is negative turn right
+	JPOS   TurnLeft          ; if difference is positive turn left
+	LOAD   Zero              ; otherwise difference is 0 so done
+	OUT    LVELCMD
+	OUT    RVELCMD
+	RETURN
+
+TurnLeft:
+	LOAD   RSlow
+	JUMP   Turn
+
+TurnRight:
+	LOAD   FSlow
+	JUMP   Turn
+	
+Turn:
+	STORE  Temp
+	OUT    LVELCMD
+	LOAD   Zero
+	SUB    Temp
+	OUT    RVELCMD
+	JUMP   rotateTo
 
 ;***************************************************************
 ;* Inverse Tangent Function
