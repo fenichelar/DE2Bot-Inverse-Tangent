@@ -374,19 +374,6 @@ UARTClear:
 ;***************************************************************
 ; Subroutine to send the robot to coordinates specified in goToX and goToY
 GoTo:
-	LOADI  100
-	STORE  goToSpeed
-	LOADI  -8
-	STORE  Deadzone
-	IN     XIO               ; set speed setting
-	AND    Mask5
-	JPOS   GoToGetPositions
-	LOADI  500
-	STORE  goToSpeed
-	LOADI  -40
-	STORE  Deadzone
-	
-GoToGetPositions:
 	IN     XPOS              ; get the current X position
 	OUT    LCD4
 	STORE  Temp
@@ -420,10 +407,10 @@ GoToGetYMagnitude:
 	STORE  inverseTangentYMagnitude
 
 CheckPosition:
-	ADD    Deadzone
+	ADDI   -10
 	JPOS   GoToCalculateTheta
 	LOAD   inverseTangentXMagnitude
-	ADD    Deadzone
+	ADDI   -11
 	JNEG   PositionReached
 
 GoToCalculateTheta:
@@ -439,7 +426,7 @@ GoToCalculateTheta:
 MoveForward:
 	ADDI   -1
 	STORE  goToThetaCount
-	LOAD   goToSpeed
+	LOAD   FSlow
 	OUT    LVELCMD
 	OUT    RVELCMD
 	JUMP   GoTo
@@ -472,9 +459,9 @@ LessThanNegative180:
 GreaterThanPositive180:
 	ADDI   -360
 ExecuteRotate:
-	ADDI   3
+	ADDI   2
 	JNEG   TurnRight         ; if difference is negative turn right
-	ADDI   -6
+	ADDI   -4
 	JPOS   TurnLeft          ; if difference is positive turn left
 	LOAD   Zero              ; otherwise difference is 0 so done
 	OUT    LVELCMD
@@ -686,14 +673,12 @@ InverseTangentReturnAccumulator:
 ;* Variables
 ;***************************************************************
 Temp:     DW 0 ; "Temp" is not a great name, but can be useful
-Deadzone:        DW 0
 InputA:          DW 0
 InputB:          DW 0
 rotateToTheta:   DW 0
 goToX:           DW 0
 goToY:           DW 0
 goToThetaCount:  DW 0
-goToSpeed:       DW 0
 inverseTangentX: DW 0
 inverseTangentY: DW 0
 inverseTangentTheta: DW 0
