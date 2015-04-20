@@ -459,9 +459,9 @@ LessThanNegative180:
 GreaterThanPositive180:
 	ADDI   -360
 ExecuteRotate:
-	ADDI   2
+	ADDI   1
 	JNEG   TurnRight         ; if difference is negative turn right
-	ADDI   -4
+	ADDI   -2
 	JPOS   TurnLeft          ; if difference is positive turn left
 	LOAD   Zero              ; otherwise difference is 0 so done
 	OUT    LVELCMD
