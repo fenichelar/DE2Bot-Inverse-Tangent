@@ -374,6 +374,19 @@ UARTClear:
 ;***************************************************************
 ; Subroutine to send the robot to coordinates specified in goToX and goToY
 GoTo:
+	LOADI  100
+	STORE  goToSpeed
+	LOADI  -8
+	STORE  Deadzone
+	IN     XIO               ; set speed setting
+	AND    Mask5
+	JPOS   GoToGetPositions
+	LOADI  500
+	STORE  goToSpeed
+	LOADI  -40
+	STORE  Deadzone
+	
+GoToGetPositions:
 	IN     XPOS              ; get the current X position
 	OUT    LCD4
 	STORE  Temp
@@ -387,25 +400,53 @@ GoTo:
 	LOAD   goToY
 	SUB    Temp
 	STORE  inverseTangentY   ; store change in Y position required
-	JPOS   CheckPosition
-	JNEG   CheckPosition
+
+GoToGetXYMagnitude:
+	LOAD   inverseTangentX
+	STORE  inverseTangentXMagnitude
+	JPOS   GoToGetYMagnitude
+	
 	SUB    inverseTangentX
-	JZERO  PositionReached
+	SUB    inverseTangentX
+	STORE  inverseTangentXMagnitude
+	
+GoToGetYMagnitude:
+	LOAD   inverseTangentY
+	STORE  inverseTangentYMagnitude
+	JPOS   CheckPosition
+	
+	SUB    inverseTangentY
+	SUB    inverseTangentY
+	STORE  inverseTangentYMagnitude
 
 CheckPosition:
+	ADD    Deadzone
+	JPOS   GoToCalculateTheta
+	LOAD   inverseTangentXMagnitude
+	ADD    Deadzone
+	JNEG   PositionReached
+
+GoToCalculateTheta:
+	LOAD   goToThetaCount
+	JPOS   MoveForward
+	ADDI   5
+	STORE  goToThetaCount
 	CALL   InverseTangent
 	LOAD   inverseTangentTheta
 	STORE  rotateToTheta
 	CALL   RotateTo
 
 MoveForward:
-	LOAD   FFast
+	ADDI   -1
+	STORE  goToThetaCount
+	LOAD   goToSpeed
 	OUT    LVELCMD
 	OUT    RVELCMD
 	JUMP   GoTo
 
 PositionReached:
 	LOAD   Zero
+	STORE  goToThetaCount
 	OUT    LVELCMD
 	OUT    RVELCMD
 	RETURN	
@@ -431,7 +472,9 @@ LessThanNegative180:
 GreaterThanPositive180:
 	ADDI   -360
 ExecuteRotate:
+	ADDI   3
 	JNEG   TurnRight         ; if difference is negative turn right
+	ADDI   -6
 	JPOS   TurnLeft          ; if difference is positive turn left
 	LOAD   Zero              ; otherwise difference is 0 so done
 	OUT    LVELCMD
@@ -465,32 +508,54 @@ InverseTangent:
 	jumpIfZero		InverseTangentX0CheckYSign
 
 
-InverseTangentCalculateRatio:
+InverseTangentGetXYMagnitude:
+	load			inverseTangentX
+	store			inverseTangentXMagnitude
+	jumpIfPositive	InverseTangentGetYMagnitude
+	
+	subtract		inverseTangentX
+	subtract		inverseTangentX
+	store			inverseTangentXMagnitude
+	
+InverseTangentGetYMagnitude:
+	load			inverseTangentY
+	store			inverseTangentYMagnitude
+	jumpIfPositive	InverseTangentCalculateRatio
+	
 	subtract		inverseTangentY
+	subtract		inverseTangentY
+	store			inverseTangentYMagnitude
+
+
+InverseTangentCalculateRatio:
+	load			inverseTangentXMagnitude
+	subtract		inverseTangentYMagnitude
 	jumpIfNegative	InverseTangentYGreater
 
 InverseTangentXGreater:
-	load			inverseTangentY
-	divide			inverseTangentX
+	load			inverseTangentYMagnitude
+	divide			inverseTangentXMagnitude
 	jump			InverseTangentCalculate
 
 InverseTangentYGreater:
-	loadImmediate	45
-	shift			8
-	store			inverseTangentTheta
+	load			inverseTangentXMagnitude
+	divide			inverseTangentYMagnitude
+
 	
-	load			inverseTangentX
-	divide			inverseTangentY
-
-
 InverseTangentCalculate:
+	jumpIfPositive	InverseTangentCalculateTaylorSeries
+	
+	store			inverseTangentRatio
+	subtract		inverseTangentRatio
+	subtract		inverseTangentRatio
+
+InverseTangentCalculateTaylorSeries:
 	; Subtract center of polynomial from input so that the value can be used in later calculations.
 	subtract	 	inverseTangentRatioOffset
 	store			inverseTangentRatio
 	
 	; Calculate first-order term, add to output, using value of input still in accumulator
 	multiply		inverseTangentCoefficient1
-	add				inverseTangentTheta
 	store			inverseTangentTheta
 	
 	; Calculate the square of the input, store for further multiplication later.
@@ -516,15 +581,15 @@ InverseTangentCalculate:
 	
 	jumpIfNegative	InverseTangentReturn0
 	
-	out				LCD6
-	
 	loadImmediate	-45
 	shift			8
 	add				inverseTangentTheta
 	jumpIfNegative	InverseTangentFixedPointToInteger
 	
 	loadImmediate	45
-	jump			InverseTangentReturnAccumulator
+	store			inverseTangentTheta
+	jump			InverseTangentCorrectQuadrant
+
 
 InverseTangentFixedPointToInteger:
 	load			inverseTangentTheta
@@ -541,6 +606,16 @@ InverseTangentRoundFixedPointDown:
 
 InverseTangentTruncateFixedPoint:
 	shift			-8
+	store			inverseTangentTheta
+
+
+InverseTangentCorrectOctant:
+	load			inverseTangentYMagnitude
+	subtract		inverseTangentXMagnitude
+	jumpIfNegative	InverseTangentCorrectQuadrant
+	
+	loadImmediate	90
+	subtract		inverseTangentTheta
 	store			inverseTangentTheta
 
 
@@ -611,15 +686,20 @@ InverseTangentReturnAccumulator:
 ;* Variables
 ;***************************************************************
 Temp:     DW 0 ; "Temp" is not a great name, but can be useful
+Deadzone:        DW 0
 InputA:          DW 0
 InputB:          DW 0
 rotateToTheta:   DW 0
 goToX:           DW 0
 goToY:           DW 0
+goToThetaCount:  DW 0
+goToSpeed:       DW 0
 inverseTangentX: DW 0
 inverseTangentY: DW 0
 inverseTangentTheta: DW 0
 inverseTangentRatio: DW 0
+inverseTangentXMagnitude: DW 0
+inverseTangentYMagnitude: DW 0
 
 ;***************************************************************
 ;* Constants
