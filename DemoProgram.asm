@@ -480,8 +480,14 @@ Turn:
 ;* Inverse Tangent Function
 ;***************************************************************
 ArcTan:
+	LOAD	arcTanY
+	JZERO	ArcTanY0CheckXSign
+	
+	LOAD	arcTanX
+	JZERO	ArcTanX0CheckYSign
 
-ArcTanGetXMagnitude:
+
+ArcTanGetXYMagnitude:
 	LOAD	arcTanX
 	STORE	arcTanXMagnitude
 	JPOS	ArcTanGetYMagnitude
@@ -489,7 +495,7 @@ ArcTanGetXMagnitude:
 	SUB		arcTanX
 	SUB		arcTanX
 	STORE	arcTanXMagnitude
-
+	
 ArcTanGetYMagnitude:
 	LOAD	arcTanY
 	STORE	arcTanYMagnitude
@@ -499,11 +505,6 @@ ArcTanGetYMagnitude:
 	SUB		arcTanY
 	STORE	arcTanYMagnitude
 
-
-ArcTanCheckXYZero:
-	JPOS	ArcTanCalculateRatio
-	LOAD	arcTanXMagnitude
-	JZERO	ArcTanReturn0
 
 ArcTanCalculateRatio:
 	LOAD	arcTanXMagnitude
@@ -621,9 +622,30 @@ ArcTanQuadrant3:
 	JUMP	ArcTanReturnAccumulator
 
 
+ArcTanX0CheckYSign:
+	LOAD	arcTanY
+	JNEG	ArcTanReturn270
+
+ArcTanReturn90:
+	LOAD	Deg90
+	JUMP	ArcTanReturnAccumulator
+
+ArcTanReturn270:
+	LOAD	Deg270
+	JUMP	ArcTanReturnAccumulator
+
+
+ArcTanY0CheckXSign:
+	LOAD	arcTanX
+	JNEG	ArcTanReturn180
+
 ArcTanReturn0:
 	LOAD	zero
 	JUMP	ArcTanReturnAccumulator
+
+ArcTanReturn180:
+	LOAD	Deg180
+
 
 ArcTanReturnAccumulator:
 	STORE	arcTanTheta
