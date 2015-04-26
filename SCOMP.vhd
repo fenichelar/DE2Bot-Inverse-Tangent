@@ -1,3 +1,11 @@
+-- SCOMP.vhd
+-- 
+-- Hardware description for Simple Computer (SCOMP).
+-- 
+-- Alec Fenichel, Mike Lewis, Billbang Sayasean, Qu Xu
+-- ECE 2031 - L09
+-- 2015.04.26
+
 LIBRARY IEEE;
 LIBRARY ALTERA_MF;
 LIBRARY LPM;

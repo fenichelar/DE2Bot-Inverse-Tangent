@@ -1,7 +1,15 @@
 ; DemoProgram.asm
+; 
+; Demos the GoTo function.
+; Takes in 2 coordinate inputs from the switches, and goes to the desired coordinates in the shortest path possible.
+; 
+; Alec Fenichel, Mike Lewis, Billbang Sayasean, Qu Xu
+; ECE 2031 - L09
+; 2015.04.26
 
 
 ORG			&H000			; Begin program at x000
+
 ;***************************************************************
 ;* Initialization
 ;***************************************************************
@@ -42,6 +50,7 @@ WaitForUser:
 	LOAD	Zero
 	OUT		XLEDS			; clear LEDs once ready to continue
 
+
 ;***************************************************************
 ;* Main code
 ;***************************************************************
@@ -52,11 +61,34 @@ Main: ; "Real" program starts here.
 	LOADI	90
 	OUT		LCDEN
 
-Test:
-	CALL	TestGoTo
-	JUMP	Test
-	
-	
+DemoGoTo:
+	; Get Inputs
+	CALL	GetInputA
+	CALL	GetInputB
+	; Store Inputs
+	LOAD	InputA
+	STORE	goToX
+	LOAD	InputB
+	STORE	goToY
+	; Call GoTo
+	CALL	GoTo
+DemoGoToDone:
+	; Blink LED6 and LED7
+	IN		TIMER
+	AND		Mask1
+	SHIFT	5
+	STORE	Temp
+	SHIFT	1
+	OR		Temp
+	OUT		XLEDS
+	; Disabled LEDS and continue when KEY3 is pressed
+	IN		XIO
+	AND		Mask2
+	JPOS	DemoGoToDone
+	LOAD	Zero
+	OUT		XLEDS
+	JUMP	DemoGoTo
+
 Die:
 ; Sometimes it's useful to permanently stop execution.
 ; This will also catch the execution if it accidentally
@@ -74,34 +106,6 @@ Forever:
 ;***************************************************************
 ;* Test Functions
 ;***************************************************************
-TestGoTo:
-	; Get Inputs
-	CALL	GetInputA
-	CALL	GetInputB
-	; Store Inputs
-	LOAD	InputA
-	STORE	goToX
-	LOAD	InputB
-	STORE	goToY
-	; Call GoTo
-	CALL	GoTo
-TestGoToDone:
-	; Blink LED6 and LED7
-	IN		TIMER
-	AND		Mask1
-	SHIFT	5
-	STORE	Temp
-	SHIFT	1
-	OR		Temp
-	OUT		XLEDS
-	; Disabled LEDS and continue when KEY3 is pressed
-	IN		XIO
-	AND		Mask2
-	JPOS	TestGoToDone
-	LOAD	Zero
-	OUT		XLEDS
-	RETURN
-
 TestArcTan:
 	; Get Inputs
 	CALL	GetInputA
@@ -169,6 +173,7 @@ TestMultiplyDivideDone:
 	LOAD	Zero
 	OUT		XLEDS
 	RETURN
+
 
 ;***************************************************************
 ;* Helper Functions
@@ -360,6 +365,7 @@ UARTClear:
 	IN		UART_DAT
 	JNEG	UARTClear
 	RETURN
+
 
 ;***************************************************************
 ;* Main Function

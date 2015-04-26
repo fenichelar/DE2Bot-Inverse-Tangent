@@ -1,10 +1,13 @@
--- SLCD.VHD (a peripheral module for SCOMP)
--- 2015.04.26
---
+-- SLCD.vhd
+-- 
 -- The simple LCD controller displays 8 16-bit registers on the LCD.
 -- It sends an initialization string to the LCD, then repeatedly writes 8 four-digit hex values to a the display.
 -- The value is latched whenever the device is selected by CS.
 -- See datasheets for the HD44780 or equivalent LCD controller.
+-- 
+-- Alec Fenichel, Mike Lewis, Billbang Sayasean, Qu Xu
+-- ECE 2031 - L09
+-- 2015.04.26
 
 LIBRARY IEEE;
 LIBRARY LPM;
