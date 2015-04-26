@@ -1,12 +1,10 @@
 -- SLCD.VHD (a peripheral module for SCOMP)
--- 2009.10.10
+-- 2015.04.26
 --
--- The simple LCD controller displays a single 16 bit register on the top line
---   of the LCD.
--- It sends an initialization string to the LCD, then repeatedly writes a four-
---   digit hex value to a fixed location in the display.  The value is latched
---   whenever the device is selected by CS.
--- See datasheets for the HD44780 or equivalent LCD controller.  
+-- The simple LCD controller displays 8 16-bit registers on the LCD.
+-- It sends an initialization string to the LCD, then repeatedly writes 8 four-digit hex values to a the display.
+-- The value is latched whenever the device is selected by CS.
+-- See datasheets for the HD44780 or equivalent LCD controller.
 
 LIBRARY IEEE;
 LIBRARY LPM;
@@ -145,13 +143,13 @@ ARCHITECTURE a OF SLCD IS
         ELSIF (RISING_EDGE(CS)) THEN
           IF (CONV_INTEGER(IO_ADDR) > 7) THEN
             enabled(3 DOWNTO 0)    <= (IO_DATA(0) & IO_DATA(0) & IO_DATA(0) & IO_DATA(0));
-			enabled(7 DOWNTO 4)    <= (IO_DATA(1) & IO_DATA(1) & IO_DATA(1) & IO_DATA(1));
-			enabled(11 DOWNTO 8)   <= (IO_DATA(2) & IO_DATA(2) & IO_DATA(2) & IO_DATA(2));
-			enabled(15 DOWNTO 12)  <= (IO_DATA(3) & IO_DATA(3) & IO_DATA(3) & IO_DATA(3));
-			enabled(19 DOWNTO 16)  <= (IO_DATA(4) & IO_DATA(4) & IO_DATA(4) & IO_DATA(4));
-			enabled(23 DOWNTO 20)  <= (IO_DATA(5) & IO_DATA(5) & IO_DATA(5) & IO_DATA(5));
-			enabled(27 DOWNTO 24)  <= (IO_DATA(6) & IO_DATA(6) & IO_DATA(6) & IO_DATA(6));
-			enabled(31 DOWNTO 28)  <= (IO_DATA(7) & IO_DATA(7) & IO_DATA(7) & IO_DATA(7));
+            enabled(7 DOWNTO 4)    <= (IO_DATA(1) & IO_DATA(1) & IO_DATA(1) & IO_DATA(1));
+            enabled(11 DOWNTO 8)   <= (IO_DATA(2) & IO_DATA(2) & IO_DATA(2) & IO_DATA(2));
+            enabled(15 DOWNTO 12)  <= (IO_DATA(3) & IO_DATA(3) & IO_DATA(3) & IO_DATA(3));
+            enabled(19 DOWNTO 16)  <= (IO_DATA(4) & IO_DATA(4) & IO_DATA(4) & IO_DATA(4));
+            enabled(23 DOWNTO 20)  <= (IO_DATA(5) & IO_DATA(5) & IO_DATA(5) & IO_DATA(5));
+            enabled(27 DOWNTO 24)  <= (IO_DATA(6) & IO_DATA(6) & IO_DATA(6) & IO_DATA(6));
+            enabled(31 DOWNTO 28)  <= (IO_DATA(7) & IO_DATA(7) & IO_DATA(7) & IO_DATA(7));
           ELSE
             lcd_data(CONV_INTEGER(IO_ADDR)) <= IO_DATA;
           END IF;
@@ -206,7 +204,7 @@ ARCHITECTURE a OF SLCD IS
             WHEN CURPOS =>
               LCD_RS <= '0';
               LCD_E  <= '1';
-			  LCD_D  <= x"CF";
+              LCD_D  <= x"CF";
               state  <= CURPOS_CLOCK;
 
             WHEN CURPOS_CLOCK =>
@@ -217,7 +215,7 @@ ARCHITECTURE a OF SLCD IS
             WHEN NEXTLINE =>
               LCD_RS <= '0';
               LCD_E  <= '1';
-			  LCD_D  <= x"8F";
+              LCD_D  <= x"8F";
               state  <= NEXTLINE_CLOCK;
 
             WHEN NEXTLINE_CLOCK =>
@@ -249,4 +247,3 @@ ARCHITECTURE a OF SLCD IS
         END IF;
       END PROCESS;
   END a;
-
